@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단어장</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #7c5cfc;
+    --accent2: #fc5c7d;
+    --accent3: #5cfc9a;
+    --text: #e8e8f0;
+    --muted: #6666880;
+    --muted2: #888899;
+    --correct: #5cfc9a;
+    --wrong: #fc5c7d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 20%, rgba(124,92,252,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(252,92,125,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 36px 0 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 4px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo span {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    background: none;
+    -webkit-text-fill-color: var(--muted2);
+    color: var(--muted2);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .stats-mini {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .stat-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted2);
+  }
+
+  .stat-pill strong {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    color: var(--muted2);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ADD WORDS */
+  .add-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .add-section h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted2);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: #444455; }
+
+  .btn-add {
+    background: linear-gradient(135deg, var(--accent), #5c8afc);
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    height: 46px;
+  }
+
+  .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,92,252,0.4); }
+  .btn-add:active { transform: translateY(0); }
+
+  /* WORD LIST */
+  .word-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .word-list-header h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+  }
+
+  .btn-clear {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    color: var(--muted2);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    transition: all 0.2s;
+  }
+
+  .btn-clear:hover { border-color: var(--wrong); color: var(--wrong); }
+
+  .word-list {
+    display: grid;
+    gap: 8px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .word-list::-webkit-scrollbar { width: 4px; }
+  .word-list::-webkit-scrollbar-track { background: transparent; }
+  .word-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .word-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.2s;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .word-item:hover { border-color: var(--accent); }
+
+  .word-pair {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .word-en {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .word-arrow {
+    color: var(--border);
+    font-size: 14px;
+  }
+
+  .word-ko {
+    font-size: 14px;
+    color: var(--muted2);
+  }
+
+  .word-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .wrong-badge {
+    background: rgba(252,92,125,0.1);
+    border: 1px solid rgba(252,92,125,0.2);
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+
+  .wrong-badge.zero { opacity: 0; }
+
+  .btn-del {
+    background: none;
+    border: none;
+    color: #444455;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+
+  .btn-del:hover { color: var(--wrong); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted2);
+    font-size: 14px;
+    border: 1.5px dashed var(--border);
+    border-radius: 16px;
+  }
+
+  .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* QUIZ */
+  .quiz-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .mode-card.selected {
+    border-color: var(--accent);
+    background: rgba(124,92,252,0.08);
+  }
+
+  .mode-card:hover:not(.selected) { border-color: #444455; }
+
+  .mode-icon {
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .mode-info .mode-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+
+  .mode-info .mode-desc {
+    font-size: 12px;
+    color: var(--muted2);
+  }
+
+  .quiz-option {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .opt-btn {
+    flex: 1;
+    padding: 10px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted2);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .opt-btn.active {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(92,252,154,0.06);
+  }
+
+  /* QUIZ CARD */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .quiz-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 0 14px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted2);
+  }
+
+  .question-prompt {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted2);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .question-word {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .question-word.korean {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .wrong-count-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: rgba(252,92,125,0.6);
+    margin-bottom: 30px;
+  }
+
+  .answer-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .answer-input {
+    flex: 1;
+    max-width: 340px;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .answer-input:focus { border-color: var(--accent); }
+
+  .answer-input.correct { border-color: var(--correct); background: rgba(92,252,154,0.05); color: var(--correct); }
+  .answer-input.wrong { border-color: var(--wrong); background: rgba(252,92,125,0.05); color: var(--wrong); }
+
+  .btn-submit {
+    background: linear-gradient(135deg, var(--accent), #5c8afc);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,92,252,0.4); }
+  .btn-submit:active { transform: translateY(0); }
+
+  .feedback {
+    margin-top: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    min-height: 24px;
+    transition: all 0.3s;
+  }
+
+  .feedback.correct { color: var(--correct); }
+  .feedback.wrong { color: var(--wrong); }
+
+  /* RESULT */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 36px;
+    text-align: center;
+  }
+
+  .result-emoji { font-size: 56px; margin-bottom: 16px; }
+
+  .result-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .result-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  .result-score span { color: var(--accent); }
+
+  .result-wrong-list {
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin: 20px 0;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .result-wrong-list h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--wrong);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .rwl-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .rwl-item:last-child { border-bottom: none; }
+  .rwl-en { font-family: 'Space Mono', monospace; color: var(--text); }
+  .rwl-ko { color: var(--muted2); }
+
+  .btn-restart {
+    background: var(--surface2);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 32px;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+
+  .btn-restart:hover { background: rgba(124,92,252,0.1); transform: translateY(-2px); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 22px;
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { color: var(--correct); border-color: rgba(92,252,154,0.3); }
+  .toast.error { color: var(--wrong); border-color: rgba(252,92,125,0.3); }
+
+  .no-quiz {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted2);
+    border: 1.5px dashed var(--border);
+    border-radius: 20px;
+  }
+
+  .no-quiz .icon { font-size: 40px; margin-bottom: 12px; }
+  .no-quiz p { font-size: 14px; line-height: 1.7; }
+
+  /* CSV IMPORT/EXPORT */
+  .csv-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn-csv {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    border: none;
+  }
+
+  .btn-csv.export {
+    background: var(--surface);
+    border: 1.5px solid var(--accent3);
+    color: var(--accent3);
+  }
+
+  .btn-csv.export:hover { background: rgba(92,252,154,0.08); transform: translateY(-2px); }
+
+  .btn-csv.import {
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-csv.import:hover { background: rgba(124,92,252,0.08); transform: translateY(-2px); }
+
+  .csv-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted2);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    line-height: 1.7;
+  }
+
+  .csv-hint strong { color: var(--accent2); }
+
+  @media (max-width: 560px) {
+    .input-row { grid-template-columns: 1fr 1fr; }
+    .btn-add { grid-column: 1 / -1; }
+    .quiz-controls { grid-template-columns: 1fr; }
+    .question-word { font-size: 44px; }
+    .logo { font-size: 38px; }
+    .answer-row { flex-direction: column; align-items: center; }
+    .answer-input { max-width: 100%; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <span>VOCABULARY</span>
+      TRAINER
+    </div>
+    <div class="stats-mini">
+      <div class="stat-pill">단어 <strong id="hdr-total">0</strong>개</div>
+      <div class="stat-pill">오답 <strong id="hdr-wrong">0</strong>회</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('add')">📚 단어 관리</button>
+    <button class="tab" onclick="switchTab('quiz')">⚡ 퀴즈</button>
+    <button class="tab" onclick="switchTab('weak')">🔥 오답 복습</button>
+    <button class="tab" onclick="switchTab('pdf')">📄 시험지</button>
+  </div>
+
+  <!-- ADD WORDS -->
+  <div id="panel-add" class="panel active">
+    <div class="add-section">
+      <h2>새 단어 추가</h2>
+      <div class="input-row">
+        <div class="field">
+          <label>ENGLISH</label>
+          <input type="text" id="inp-en" placeholder="apple" autocomplete="off" onkeydown="handleAddKey(event)">
+        </div>
+        <div class="field">
+          <label>한국어</label>
+          <input type="text" id="inp-ko" placeholder="사과" autocomplete="off" onkeydown="handleAddKey(event)">
+        </div>
+        <button class="btn-add" onclick="addWord()">+ 추가</button>
+      </div>
+    </div>
+
+    <div class="csv-bar">
+      <button class="btn-csv export" onclick="exportCSV()">⬇ CSV 내보내기</button>
+      <button class="btn-csv import" onclick="document.getElementById('csv-file-input').click()">⬆ CSV 가져오기</button>
+      <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="importCSV(event)">
+    </div>
+    <div class="csv-hint">
+      <strong>CSV 사용법:</strong> 내보내기로 <code>vocab.csv</code> 파일을 저장 → html 파일과 함께 이동 → 새 컴퓨터에서 가져오기<br>
+      직접 만들 경우 형식: <code>english,korean,wrong_count</code>
+    </div>
+
+    <div class="word-list-header">
+      <h2>단어 목록</h2>
+      <button class="btn-clear" onclick="clearAll()">전체 삭제</button>
+    </div>
+    <div class="word-list" id="word-list">
+      <div class="empty-state"><div class="icon">📖</div>아직 단어가 없어요.<br>위에서 단어를 추가해 보세요!</div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="panel-quiz" class="panel">
+    <div id="quiz-setup">
+      <div class="quiz-controls">
+        <div class="mode-card selected" id="mode-ko2en" onclick="selectMode('ko2en')">
+          <div class="mode-icon">🇰🇷→🇺🇸</div>
+          <div class="mode-info">
+            <div class="mode-title">한국어 → 영어</div>
+            <div class="mode-desc">한국어 뜻을 보고 영어 단어 입력</div>
+          </div>
+        </div>
+        <div class="mode-card" id="mode-en2ko" onclick="selectMode('en2ko')">
+          <div class="mode-icon">🇺🇸→🇰🇷</div>
+          <div class="mode-info">
+            <div class="mode-title">영어 → 한국어</div>
+            <div class="mode-desc">영어 단어를 보고 한국어 뜻 입력</div>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-option">
+        <button class="opt-btn active" id="opt-all" onclick="selectSource('all')">전체 단어</button>
+        <button class="opt-btn" id="opt-weak" onclick="selectSource('weak')">오답 단어만</button>
+      </div>
+      <button class="btn-add" style="width:100%; font-size:15px; height:50px;" onclick="startQuiz()">퀴즈 시작</button>
+    </div>
+
+    <div id="quiz-running" style="display:none">
+      <div class="quiz-card">
+        <div class="quiz-progress">
+          <span class="progress-label" id="q-cur">1</span>
+          <div class="progress-bar"><div class="progress-fill" id="q-bar" style="width:0%"></div></div>
+          <span class="progress-label" id="q-total">10</span>
+        </div>
+        <div class="question-prompt" id="q-prompt">뜻을 보고 영어 단어를 입력하세요</div>
+        <div class="question-word" id="q-word">—</div>
+        <div class="wrong-count-hint" id="q-hint"></div>
+        <div class="answer-row">
+          <input type="text" class="answer-input" id="ans-input" placeholder="입력 후 Enter" autocomplete="off" onkeydown="handleAnswerKey(event)">
+          <button class="btn-submit" onclick="submitAnswer()">확인</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+    </div>
+
+    <div id="quiz-result" style="display:none">
+      <div class="result-card">
+        <div class="result-emoji" id="res-emoji">🎉</div>
+        <div class="result-title">RESULT</div>
+        <div class="result-score"><span id="res-correct">0</span> / <span id="res-total">0</span></div>
+        <div class="result-wrong-list" id="res-wrong-list" style="display:none">
+          <h3>틀린 단어</h3>
+          <div id="res-wrong-items"></div>
+        </div>
+        <button class="btn-restart" onclick="resetQuiz()">다시 풀기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEAK -->
+  <div id="panel-weak" class="panel">
+    <div class="word-list-header">
+      <h2>오답 단어 순위</h2>
+      <button class="btn-clear" onclick="resetWrongCounts()">오답 초기화</button>
+    </div>
+    <div class="word-list" id="weak-list"></div>
+  </div>
+
+  <!-- PDF -->
+  <div id="panel-pdf" class="panel">
+    <div class="add-section">
+      <h2>시험지 설정</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div>
+          <div class="field" style="margin-bottom:14px">
+            <label>시험지 제목</label>
+            <input type="text" id="pdf-title" value="영어 단어 시험" style="width:100%">
+          </div>
+          <div class="field">
+            <label>학생 이름 칸</label>
+            <select id="pdf-name-field" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;font-family:'Noto Sans KR',sans-serif">
+              <option value="yes">표시</option>
+              <option value="no">숨김</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div class="field" style="margin-bottom:14px">
+            <label>출제 방향</label>
+            <select id="pdf-direction" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;font-family:'Noto Sans KR',sans-serif">
+              <option value="ko2en">한국어 → 영어 쓰기</option>
+              <option value="en2ko">영어 → 한국어 쓰기</option>
+              <option value="both">두 방향 모두 (앞/뒤)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>단어 범위</label>
+            <select id="pdf-source" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;font-family:'Noto Sans KR',sans-serif">
+              <option value="all">전체 단어</option>
+              <option value="weak">오답 단어만</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="field">
+          <label>단어 순서</label>
+          <select id="pdf-order" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;font-family:'Noto Sans KR',sans-serif">
+            <option value="random">랜덤</option>
+            <option value="original">추가 순서</option>
+            <option value="weak">오답 많은 순</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>칸 레이아웃</label>
+          <select id="pdf-layout" style="width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-size:14px;outline:none;font-family:'Noto Sans KR',sans-serif">
+            <option value="lines">줄 쓰기형</option>
+            <option value="box">박스형</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-add" style="width:100%;font-size:15px;height:52px" onclick="generatePDF()">📄 PDF 저장</button>
+    </div>
+
+    <div id="pdf-preview-area" style="display:none">
+      <div class="word-list-header" style="margin-top:8px">
+        <h2>미리보기</h2>
+        <button class="btn-clear" onclick="document.getElementById('pdf-preview-area').style.display='none'">닫기</button>
+      </div>
+      <div id="pdf-preview-box" style="background:#fff;border-radius:14px;padding:0;overflow:hidden;border:1px solid var(--border)"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'vocab_trainer_v1';
+
+  let words = [];
+  let quizMode = 'ko2en'; // 'ko2en' | 'en2ko'
+  let quizSource = 'all'; // 'all' | 'weak'
+  let quizQueue = [];
+  let quizIdx = 0;
+  let quizCorrect = 0;
+  let quizWrongItems = [];
+  let answered = false;
+
+  // LOAD
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) words = JSON.parse(raw);
+    } catch(e) { words = []; }
+    render();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+  }
+
+  // TABS
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((el, i) => {
+      el.classList.toggle('active', ['add','quiz','weak','pdf'][i] === tab);
+    });
+    document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+    if (tab === 'weak') renderWeak();
+  }
+
+  // ADD
+  function addWord() {
+    const en = document.getElementById('inp-en').value.trim();
+    const ko = document.getElementById('inp-ko').value.trim();
+    if (!en || !ko) { showToast('영어와 한국어를 모두 입력해주세요', 'error'); return; }
+    if (words.find(w => w.en.toLowerCase() === en.toLowerCase())) {
+      showToast('이미 있는 단어예요', 'error'); return;
+    }
+    words.push({ en, ko, wrong: 0, id: Date.now() });
+    save();
+    document.getElementById('inp-en').value = '';
+    document.getElementById('inp-ko').value = '';
+    document.getElementById('inp-en').focus();
+    renderWordList();
+    updateHeader();
+    showToast('✓ 단어 추가됨: ' + en, 'success');
+  }
+
+  function handleAddKey(e) {
+    if (e.key === 'Enter') addWord();
+  }
+
+  function deleteWord(id) {
+    words = words.filter(w => w.id !== id);
+    save(); renderWordList(); updateHeader();
+  }
+
+  function clearAll() {
+    if (!words.length) return;
+    if (!confirm('모든 단어를 삭제할까요?')) return;
+    words = []; save(); renderWordList(); updateHeader();
+  }
+
+  function renderWordList() {
+    const el = document.getElementById('word-list');
+    if (!words.length) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">📖</div>아직 단어가 없어요.<br>위에서 단어를 추가해 보세요!</div>';
+      return;
+    }
+    el.innerHTML = words.map(w => `
+      <div class="word-item">
+        <div class="word-pair">
+          <span class="word-en">${w.en}</span>
+          <span class="word-arrow">↔</span>
+          <span class="word-ko">${w.ko}</span>
+        </div>
+        <div class="word-meta">
+          <span class="wrong-badge ${w.wrong === 0 ? 'zero' : ''}">✗ ${w.wrong}</span>
+          <button class="btn-del" onclick="deleteWord(${w.id})" title="삭제">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function updateHeader() {
+    document.getElementById('hdr-total').textContent = words.length;
+    document.getElementById('hdr-wrong').textContent = words.reduce((s, w) => s + w.wrong, 0);
+  }
+
+  function render() { renderWordList(); updateHeader(); }
+
+  // QUIZ SETUP
+  function selectMode(m) {
+    quizMode = m;
+    document.getElementById('mode-ko2en').classList.toggle('selected', m === 'ko2en');
+    document.getElementById('mode-en2ko').classList.toggle('selected', m === 'en2ko');
+  }
+
+  function selectSource(s) {
+    quizSource = s;
+    document.getElementById('opt-all').classList.toggle('active', s === 'all');
+    document.getElementById('opt-weak').classList.toggle('active', s === 'weak');
+  }
+
+  function startQuiz() {
+    let pool = quizSource === 'weak'
+      ? words.filter(w => w.wrong > 0).sort((a,b) => b.wrong - a.wrong)
+      : [...words];
+
+    if (!pool.length) {
+      showToast(quizSource === 'weak' ? '오답 단어가 없어요!' : '단어를 먼저 추가하세요!', 'error');
+      return;
+    }
+
+    // shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i+1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    quizQueue = pool;
+    quizIdx = 0;
+    quizCorrect = 0;
+    quizWrongItems = [];
+
+    document.getElementById('quiz-setup').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'none';
+    document.getElementById('quiz-running').style.display = 'block';
+
+    showQuestion();
+  }
+
+  function showQuestion() {
+    answered = false;
+    const w = quizQueue[quizIdx];
+    const total = quizQueue.length;
+
+    document.getElementById('q-cur').textContent = quizIdx + 1;
+    document.getElementById('q-total').textContent = total;
+    document.getElementById('q-bar').style.width = ((quizIdx / total) * 100) + '%';
+
+    if (quizMode === 'ko2en') {
+      document.getElementById('q-prompt').textContent = '한국어 뜻을 보고 영어 단어를 입력하세요';
+      const qw = document.getElementById('q-word');
+      qw.textContent = w.ko;
+      qw.className = 'question-word korean';
+    } else {
+      document.getElementById('q-prompt').textContent = '영어 단어를 보고 한국어 뜻을 입력하세요';
+      const qw = document.getElementById('q-word');
+      qw.textContent = w.en;
+      qw.className = 'question-word';
+    }
+
+    if (w.wrong > 0) {
+      document.getElementById('q-hint').textContent = `⚠ ${w.wrong}번 틀린 단어`;
+    } else {
+      document.getElementById('q-hint').textContent = '';
+    }
+
+    const inp = document.getElementById('ans-input');
+    inp.value = '';
+    inp.className = 'answer-input';
+    inp.removeAttribute('disabled');
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+
+    setTimeout(() => inp.focus(), 50);
+  }
+
+  function submitAnswer() {
+    if (answered) { nextQuestion(); return; }
+    const inp = document.getElementById('ans-input');
+    const ans = inp.value.trim();
+    if (!ans) return;
+
+    const w = quizQueue[quizIdx];
+    const correct = quizMode === 'ko2en' ? w.en : w.ko;
+    const isCorrect = ans.toLowerCase() === correct.toLowerCase();
+
+    answered = true;
+    inp.disabled = true;
+
+    const fb = document.getElementById('feedback');
+    if (isCorrect) {
+      inp.className = 'answer-input correct';
+      fb.textContent = '✓ 정답!';
+      fb.className = 'feedback correct';
+      quizCorrect++;
+    } else {
+      inp.className = 'answer-input wrong';
+      fb.textContent = `✗ 오답 — 정답: ${correct}`;
+      fb.className = 'feedback wrong';
+      // increment wrong count
+      const orig = words.find(x => x.id === w.id);
+      if (orig) { orig.wrong++; save(); updateHeader(); }
+      quizWrongItems.push(w);
+    }
+
+    setTimeout(() => nextQuestion(), 1100);
+  }
+
+  function nextQuestion() {
+    quizIdx++;
+    if (quizIdx >= quizQueue.length) {
+      showResult();
+    } else {
+      showQuestion();
+    }
+  }
+
+  function handleAnswerKey(e) {
+    if (e.key === 'Enter') submitAnswer();
+  }
+
+  function showResult() {
+    document.getElementById('quiz-running').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'block';
+
+    const total = quizQueue.length;
+    const pct = Math.round((quizCorrect / total) * 100);
+
+    document.getElementById('res-correct').textContent = quizCorrect;
+    document.getElementById('res-total').textContent = total;
+
+    let emoji = '😓';
+    if (pct === 100) emoji = '🏆';
+    else if (pct >= 80) emoji = '🎉';
+    else if (pct >= 60) emoji = '👍';
+    else if (pct >= 40) emoji = '📖';
+    document.getElementById('res-emoji').textContent = emoji;
+
+    // wrong list
+    if (quizWrongItems.length) {
+      document.getElementById('res-wrong-list').style.display = 'block';
+      document.getElementById('res-wrong-items').innerHTML = quizWrongItems.map(w => `
+        <div class="rwl-item">
+          <span class="rwl-en">${w.en}</span>
+          <span class="rwl-ko">${w.ko}</span>
+        </div>
+      `).join('');
+    } else {
+      document.getElementById('res-wrong-list').style.display = 'none';
+    }
+  }
+
+  function resetQuiz() {
+    document.getElementById('quiz-running').style.display = 'none';
+    document.getElementById('quiz-result').style.display = 'none';
+    document.getElementById('quiz-setup').style.display = 'block';
+  }
+
+  // WEAK LIST
+  function renderWeak() {
+    const el = document.getElementById('weak-list');
+    const sorted = [...words].filter(w => w.wrong > 0).sort((a,b) => b.wrong - a.wrong);
+    if (!sorted.length) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">🎯</div>아직 틀린 단어가 없어요!<br>퀴즈를 풀어보세요.</div>';
+      return;
+    }
+    el.innerHTML = sorted.map((w, i) => `
+      <div class="word-item">
+        <div class="word-pair">
+          <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted2);width:20px">${i+1}</span>
+          <span class="word-en">${w.en}</span>
+          <span class="word-arrow">↔</span>
+          <span class="word-ko">${w.ko}</span>
+        </div>
+        <span class="wrong-badge">✗ ${w.wrong}회</span>
+      </div>
+    `).join('');
+  }
+
+  function resetWrongCounts() {
+    if (!confirm('오답 횟수를 초기화할까요?')) return;
+    words.forEach(w => w.wrong = 0);
+    save(); renderWeak(); updateHeader();
+    showToast('오답 기록이 초기화되었어요', 'success');
+  }
+
+  // CSV EXPORT
+  function exportCSV() {
+    if (!words.length) { showToast('내보낼 단어가 없어요', 'error'); return; }
+    const header = 'english,korean,wrong_count';
+    const rows = words.map(w => {
+      const en = '"' + w.en.replace(/"/g, '""') + '"';
+      const ko = '"' + w.ko.replace(/"/g, '""') + '"';
+      return `${en},${ko},${w.wrong}`;
+    });
+    const csv = '\uFEFF' + header + '\n' + rows.join('\n'); // BOM for Excel Korean support
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vocab_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ CSV 저장됨 (' + words.length + '개 단어)', 'success');
+  }
+
+  // CSV IMPORT
+  function importCSV(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        let text = ev.target.result;
+        // strip BOM
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        // skip header row
+        const start = lines[0].toLowerCase().startsWith('english') ? 1 : 0;
+        let added = 0, skipped = 0;
+        for (let i = start; i < lines.length; i++) {
+          const cols = parseCSVLine(lines[i]);
+          if (cols.length < 2) continue;
+          const en = cols[0].trim();
+          const ko = cols[1].trim();
+          const wrong = parseInt(cols[2]) || 0;
+          if (!en || !ko) continue;
+          if (words.find(w => w.en.toLowerCase() === en.toLowerCase())) { skipped++; continue; }
+          words.push({ en, ko, wrong, id: Date.now() + Math.random() });
+          added++;
+        }
+        save(); render();
+        showToast(`✓ ${added}개 추가, ${skipped}개 중복 건너뜀`, 'success');
+      } catch(err) {
+        showToast('CSV 파일을 읽을 수 없어요', 'error');
+      }
+      e.target.value = ''; // reset input
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (c === ',' && !inQ) {
+        result.push(cur); cur = '';
+      } else {
+        cur += c;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  // PDF / PRINT
+  function generatePDF() {
+    const direction = document.getElementById('pdf-direction').value;
+    const source    = document.getElementById('pdf-source').value;
+    const order     = document.getElementById('pdf-order').value;
+    const layout    = document.getElementById('pdf-layout').value;
+    const title     = document.getElementById('pdf-title').value.trim() || '영어 단어 시험';
+    const showName  = document.getElementById('pdf-name-field').value === 'yes';
+
+    let pool = source === 'weak' ? words.filter(w => w.wrong > 0) : [...words];
+    if (!pool.length) { showToast(source === 'weak' ? '오답 단어가 없어요!' : '단어를 먼저 추가하세요!', 'error'); return; }
+
+    if (order === 'random') {
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i+1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+    } else if (order === 'weak') {
+      pool.sort((a,b) => b.wrong - a.wrong);
+    }
+
+    const sheets = direction === 'both'
+      ? [buildSheet(pool, 'ko2en', title, showName, layout), buildSheet(pool, 'en2ko', title + ' (반대)', showName, layout)]
+      : [buildSheet(pool, direction, title, showName, layout)];
+
+    const sheetCSS = `
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Noto Sans KR', sans-serif; background: #fff; }
+      .page { width: 100%; padding: 14mm 12mm 12mm; page-break-after: always; }
+      .sheet-header { border-bottom: 2.5px solid #111; padding-bottom: 10px; margin-bottom: 14px; }
+      .sheet-title { font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+      .sheet-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 13px; color: #555; }
+      .name-box { display: flex; align-items: center; gap: 8px; }
+      .name-line { border-bottom: 1.5px solid #333; width: 140px; height: 20px; }
+      .score-circle { width: 54px; height: 54px; border: 2px solid #333; border-radius: 50%; }
+      .direction-label { display: inline-block; background: #111; color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 4px; margin-bottom: 12px; letter-spacing: 1px; }
+      .word-table { width: 100%; border-collapse: collapse; }
+      .word-table th { background: #f5f5f5; font-size: 11px; letter-spacing: 1px; padding: 6px 10px; border: 1px solid #ccc; text-align: left; font-weight: 600; color: #444; }
+      .word-table td { border: 1px solid #ddd; padding: 0; vertical-align: middle; }
+      .cell-num { width: 32px; text-align: center; font-size: 12px; color: #999; padding: 0 4px; background: #fafafa; }
+      .cell-q { padding: 8px 12px; font-size: 15px; font-weight: 600; width: 46%; }
+      .cell-a { padding: 8px 12px; min-height: 36px; }
+      .cell-wrong { width: 38px; text-align: center; font-size: 11px; color: #e44; padding: 0 4px; }
+      .row-even td { background: #fafafa; }
+      .box-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .box-item { border: 1.5px solid #ccc; border-radius: 6px; padding: 10px 12px; min-height: 64px; display: flex; flex-direction: column; justify-content: space-between; }
+      .box-num { font-size: 10px; color: #999; margin-bottom: 4px; }
+      .box-q { font-size: 15px; font-weight: 700; }
+      .box-answer-area { border-top: 1px dashed #bbb; margin-top: 8px; padding-top: 4px; min-height: 22px; }
+      .footer { margin-top: 14px; text-align: right; font-size: 11px; color: #aaa; }
+    `;
+
+    const html = `<!DOCTYPE html><html lang="ko"><head>
+      <meta charset="UTF-8">
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+      <style>${sheetCSS}</style>
+    </head><body>${sheets.join('\n')}</body></html>`;
+
+    // 숨겨진 iframe으로 PDF 저장 다이얼로그 직접 호출 (팝업 차단 무관)
+    let iframe = document.getElementById('pdf-print-frame');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'pdf-print-frame';
+      iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;';
+      document.body.appendChild(iframe);
+    }
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      }, 600); // 폰트 로딩 대기
+    };
+
+    iframe.srcdoc = html;
+    showToast('📄 PDF 저장 다이얼로그를 불러오는 중...', 'success');
+  }
+
+  function buildSheet(pool, dir, title, showName, layout) {
+    const date = new Date().toLocaleDateString('ko-KR');
+    const dirLabel = dir === 'ko2en' ? '한국어 → 영어 쓰기' : '영어 → 한국어 쓰기';
+    const nameHtml = showName
+      ? `<div class="name-box"><span>이름</span><div class="name-line"></div></div>`
+      : '';
+    const headerHtml = `
+      <div class="sheet-header">
+        <div class="sheet-title">${title}</div>
+        <div class="sheet-meta">
+          <div style="display:flex;gap:24px;align-items:center">
+            ${nameHtml}
+            <span>${date}</span>
+            <span>총 ${pool.length}문항</span>
+          </div>
+          <div class="score-circle"></div>
+        </div>
+      </div>
+      <div class="direction-label">${dirLabel}</div>`;
+
+    const bodyHtml = layout === 'box'
+      ? buildBoxBody(pool, dir)
+      : buildLineBody(pool, dir);
+
+    return `<div class="page">${headerHtml}${bodyHtml}<div class="footer">VOCABULARY TRAINER · ${date}</div></div>`;
+  }
+
+  function buildLineBody(pool, dir) {
+    const qHeader = dir === 'ko2en' ? '한국어' : '영어';
+    const aHeader = dir === 'ko2en' ? '영어 (쓰기)' : '한국어 (쓰기)';
+    const rows = pool.map((w, i) => {
+      const q = dir === 'ko2en' ? w.ko : w.en;
+      const wrongCell = w.wrong > 0 ? `<td class="cell-wrong">✗${w.wrong}</td>` : `<td class="cell-wrong"></td>`;
+      return `<tr class="${i%2===1?'row-even':''}">
+        <td class="cell-num">${i+1}</td>
+        <td class="cell-q">${q}</td>
+        <td class="cell-a"></td>
+        ${wrongCell}
+      </tr>`;
+    }).join('');
+    return `<table class="word-table">
+      <thead><tr>
+        <th style="width:32px">#</th>
+        <th>${qHeader}</th>
+        <th>${aHeader}</th>
+        <th style="width:38px">오답</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  function buildBoxBody(pool, dir) {
+    const items = pool.map((w, i) => {
+      const q = dir === 'ko2en' ? w.ko : w.en;
+      const wrongMark = w.wrong > 0 ? `<span style="font-size:10px;color:#e44;margin-left:6px">✗${w.wrong}</span>` : '';
+      return `<div class="box-item">
+        <div>
+          <div class="box-num">${i+1}${wrongMark}</div>
+          <div class="box-q">${q}</div>
+        </div>
+        <div class="box-answer-area"></div>
+      </div>`;
+    }).join('');
+    return `<div class="box-grid">${items}</div>`;
+  }
+
+  // TOAST
+  let toastTimer;
+  function showToast(msg, type='success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  }
+
+  load();
+</script>
+</body>
+</html>
